@@ -11,7 +11,16 @@ builder.Services.AddDbContext<AppDbContext>(op =>
 op.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // AddEntityFrameworkStores adds relationship between user, roles and stores for the db context
+//builder.Services.AddIdentity<IdentityUser, IdentityRole>(opt => opt.Password.RequiredLength = 5).AddEntityFrameworkStores<AppDbContext>();
+ 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
+builder.Services.Configure<IdentityOptions>(option =>
+{
+    option.Password.RequiredLength = 8;
+    option.Password.RequireLowercase = true;
+    option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(30);
+    option.Lockout.MaxFailedAccessAttempts = 2;
+});
 
 var app = builder.Build();
 
