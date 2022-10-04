@@ -50,15 +50,39 @@ namespace AuthAothIdentityManager.Controllers
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
-
                 if (result.Succeeded)
                 {
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new
+                    {
+                        UserId = user.Id,
+                        code
+                    }, protocol: HttpContext.Request.Scheme);
+
+                    await _emailSender.SendEmailAsync(model.Email, "Confirm your email",
+                        "Please click: <a href=\"" + callbackUrl + "\">here</a>" + " to verify your account");
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return LocalRedirect(returnUrl);
                 }
                 AddErrors(result);
             }
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                return View("Error");
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return View("Error");
+            }
+            var result = await _userManager.ConfirmEmailAsync(user, code);
+            return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
         [HttpGet]
@@ -124,7 +148,7 @@ namespace AuthAothIdentityManager.Controllers
                 var callbackUrl = Url.Action("ResetPassword", "Account", new
                 {
                     UserId = user.Id,
-                    code = code
+                    code
                 }, protocol: HttpContext.Request.Scheme);
 
                 await _emailSender.SendEmailAsync(model.Email, "Reset Your Password",
@@ -174,6 +198,11 @@ namespace AuthAothIdentityManager.Controllers
             return View();
         }
 
+        //[HttpGet]
+        //public IActionResult TestPage()
+        //{
+        //    return View();
+        //}
 
         private void AddErrors(IdentityResult result)
         {
