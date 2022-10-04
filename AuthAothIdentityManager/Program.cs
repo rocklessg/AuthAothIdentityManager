@@ -1,5 +1,7 @@
 using AuthAothIdentityManager.Models.Data;
+using AuthAothIdentityManager.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +14,10 @@ op.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")))
 
 // AddEntityFrameworkStores adds relationship between user, roles and stores for the db context
 //builder.Services.AddIdentity<IdentityUser, IdentityRole>(opt => opt.Password.RequiredLength = 5).AddEntityFrameworkStores<AppDbContext>();
- 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
+//builder.Services.AddDefaultIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+builder.Services.AddTransient<IEmailSender, MailJetEmailSender>();
 builder.Services.Configure<IdentityOptions>(option =>
 {
     option.Password.RequiredLength = 8;
